@@ -5,7 +5,7 @@ long_description = """
 
 ### Help with setting up bpy/blender/blender addons
 
-More info available at: [coldtype.xyz]
+More info available at: [coldtype.xyz](https://coldtype.xyz)
 """
 
 setuptools.setup(
