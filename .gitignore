@@ -3,3 +3,5 @@ venv
 __pycache__
 build
 dist
+*.pyc
+b3denv/versions
