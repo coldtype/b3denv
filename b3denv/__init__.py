@@ -117,6 +117,18 @@ def install(vars):
         print("SYMLINK", addon)
 
 
+def uninstall(vars):
+    addon_source = vars.get("addon_source")
+    addon = vars.get("addon")
+
+    if on_mac():
+        if os.path.exists(addon): os.unlink(addon)
+        print("Uninstalled symlink:", addon)
+        #subprocess.call(["ln", "-s", addon_source, addon])
+        #print("SOURCE", addon_source)
+        #print("SYMLINK", addon)
+
+
 def release(vars):
     import zipfile, re
 
@@ -166,6 +178,8 @@ def main():
         sys.stdout.write(str(vars.get("bpy")))
     elif action == "install":
         install(vars)
+    elif action == "uninstall":
+        uninstall(vars)
     elif action == "show":
         addon_path = vars.get("addon_path")
         subprocess.call(["open", addon_path])
@@ -173,6 +187,8 @@ def main():
         release(vars)
     elif action == "download":
         fill_out_python(vars)
+    else:
+        print(f"Action ({action}) not recognized")
 
 
 if __name__ == "__main__":
