@@ -179,7 +179,7 @@ def uninstall(vars):
         #print("SYMLINK", addon)
 
 
-def release(vars):
+def release(vars, suffix=None):
     import zipfile, re
 
     addon_name = vars.get("addon_name")
@@ -196,7 +196,11 @@ def release(vars):
     if not os.path.exists(releases):
         os.mkdir(releases)
 
-    release = os.path.join(releases, "ST2-v" + mj + "-" + mn + ".zip")
+    release_name = "ST2-v" + mj + "-" + mn
+    if suffix:
+        release_name = release_name + "_" + suffix
+    
+    release = os.path.join(releases, release_name + ".zip")
     if os.path.exists(release):
         os.unlink(release)
 
@@ -211,10 +215,10 @@ def release(vars):
                 for _root, _dirs, _files in os.walk(f):
                     for _file in _files:
                         if ("__pycache__" not in _root
-                            and "/pkg_resources/" not in _root
-                            and "/setuptools/" not in _root
-                            and "/pip-" not in _root
-                            and "/pip/" not in _root
+                            #and "/pkg_resources/" not in _root
+                            #and "/setuptools/" not in _root
+                            #and "/pip-" not in _root
+                            #and "/pip/" not in _root
                             ):
                             print(os.path.join(_root, _file))
                             zf.write(os.path.join(_root, _file))
@@ -238,6 +242,11 @@ def main():
     else:
         addon_name = None
     
+    kwargs = {}
+    if len(sys.argv) > 3:
+        pairs = [p.split("=") for p in sys.argv[3].split(",")]
+        kwargs = {k:v for k,v in pairs}
+    
     vars = get_vars(addon_name)
 
     if action == "blender":
@@ -252,7 +261,7 @@ def main():
         addon_path = vars.get("addon_path")
         subprocess.call(["open", addon_path])
     elif action == "release":
-        release(vars)
+        release(vars, suffix=kwargs.get("suffix"))
     elif action == "download":
         fill_out_python(vars)
     elif action == "inline":
