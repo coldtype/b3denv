@@ -1,4 +1,4 @@
-import platform, re, os, sys, subprocess
+import platform, re, os, sys, glob, subprocess, shutil
 
 def _os(): return platform.system()
 def on_windows(): return _os() == "Windows"
@@ -58,6 +58,19 @@ def get_vars(addon_name):
             "bpy": bpy,
             "blender": blender_executable
         }
+
+
+def inline_dependencies(vars):
+    addon_source = vars.get("addon_source")
+    parent = os.path.dirname(addon_source)
+    venv = os.path.join(parent, "venv")
+
+    if not os.path.exists(venv):
+        print("no venv found!")
+        return
+    
+    packages = glob.glob(os.path.join(venv, "lib", "*", "site-packages"))
+    shutil.copytree(packages[0], os.path.join(addon_source, "inline-packages"))
 
 
 def fill_out_python(vars):
@@ -187,6 +200,8 @@ def main():
         release(vars)
     elif action == "download":
         fill_out_python(vars)
+    elif action == "inline":
+        inline_dependencies(vars)
     else:
         print(f"Action ({action}) not recognized")
 
