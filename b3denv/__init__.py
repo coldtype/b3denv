@@ -58,6 +58,38 @@ def get_vars(addon_name):
             "bpy": bpy,
             "blender": blender_executable
         }
+    elif on_windows():
+        version = None
+        parent = os.path.dirname(blender)
+        
+        for p in os.listdir(parent):
+            if os.path.isdir(os.path.join(parent, p)):
+                name = os.path.basename(p)
+                if re.match(r"[23]{1}\.[0-9]{1,2}", name):
+                    version = name
+        
+        python_folder = os.path.join(parent, version, "python\\bin")
+        python = os.path.join(python_folder, "python.exe")
+        bpy = python
+
+        blenders_appdata = os.path.abspath(os.path.expanduser("~\\AppData\\Roaming\\Blender Foundation\\Blender"))
+        addon_path = os.path.join(blenders_appdata, version, "scripts\\addons")
+
+        if addon_name:
+            addon = os.path.join(addon_path, addon_name)
+        else:
+            addon = None
+
+        blender_executable = blender
+
+        return {
+            "addon_name": addon_name,
+            "addon_source": addon_source,
+            "addon_path": addon_path,
+            "addon": addon,
+            "bpy": bpy,
+            "blender": blender_executable
+        }
 
 
 def fill_out_python(vars):
