@@ -206,6 +206,18 @@ def release(vars):
         if not os.path.isdir(f):
             print("> " + f)
             zf.write(f)
+        else:
+            if "inline-packages" in f:
+                for _root, _dirs, _files in os.walk(f):
+                    for _file in _files:
+                        if ("__pycache__" not in _root
+                            and "/pkg_resources/" not in _root
+                            and "/setuptools/" not in _root
+                            and "/pip-" not in _root
+                            and "/pip/" not in _root
+                            ):
+                            print(os.path.join(_root, _file))
+                            zf.write(os.path.join(_root, _file))
     zf.close()
 
 
