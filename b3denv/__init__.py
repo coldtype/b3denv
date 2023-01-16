@@ -247,6 +247,9 @@ def main():
         addon_name = sys.argv[2]
     else:
         addon_name = None
+
+    if action == "version":
+        return "0.0.2"
     
     kwargs = {}
     if len(sys.argv) > 3:
@@ -265,7 +268,12 @@ def main():
         uninstall(vars)
     elif action == "show":
         addon_path = vars.get("addon_path")
-        subprocess.call(["open", addon_path])
+        if on_mac():
+            subprocess.call(["open", addon_path])
+        elif on_windows():
+            subprocess.call(["explorer", addon_path])
+        else:
+            print("not implemented for this platform")
     elif action == "release":
         release(vars, suffix=kwargs.get("suffix"))
     elif action == "download":
