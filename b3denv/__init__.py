@@ -101,8 +101,14 @@ def inline_dependencies(vars):
         print("no venv found!")
         return
     
-    packages = glob.glob(os.path.join(venv, "lib", "*", "site-packages"))
-    shutil.copytree(packages[0], os.path.join(addon_source, "inline-packages"))
+    if on_windows():
+        packages = os.path.join(venv, "Lib", "site-packages")
+    else:
+        packages = glob.glob(os.path.join(venv, "lib", "*", "site-packages"))
+        if packages and os.path.exists(packages[0]):
+            packages = packages[0]
+    print(packages)
+    shutil.copytree(packages, os.path.join(addon_source, "inline-packages"))
 
 
 def fill_out_python(vars):
