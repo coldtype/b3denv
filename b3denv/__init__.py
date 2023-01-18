@@ -249,7 +249,7 @@ def main():
         addon_name = None
 
     if action == "--version" or action == "-v":
-        return "0.0.2"
+        return "0.0.3"
     
     kwargs = {}
     if len(sys.argv) > 3:
