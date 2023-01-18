@@ -238,30 +238,68 @@ def for_alias(s):
     return s
 
 def main():
-    if len(sys.argv) == 1:
+    argv = sys.argv
+
+    passing = False
+    dashes, passes, args = [], [], []
+    
+    for a in argv:
+        if a == "-c":
+            passing = True
+            continue
+        if passing:
+            passes.append(a)
+        else:
+            if a.startswith("-"):
+                dashes.append(a)
+            else:
+                args.append(a)
+    
+    if "-v" in dashes or "--version" in dashes:
+        return "0.0.4"
+
+    if len(args) == 1:
         print("b3denv <action> <extension-name>?")
         return
 
-    action = sys.argv[1]
-    if len(sys.argv) > 2:
-        addon_name = sys.argv[2]
+    action = args[1]
+    if len(args) > 2:
+        addon_name = args[2]
     else:
         addon_name = None
-
-    if action == "--version" or action == "-v":
-        return "0.0.3"
     
     kwargs = {}
-    if len(sys.argv) > 3:
-        pairs = [p.split("=") for p in sys.argv[3].split(",")]
+    if len(args) > 3 and "=" in args[3]:
+        pairs = [p.split("=") for p in args[3].split(",")]
         kwargs = {k:v for k,v in pairs}
     
     vars = get_vars(addon_name)
 
-    if action == "blender":
-        sys.stdout.write(for_alias(str(vars.get("blender"))))
+    if action == "paths":
+        print(">>> B3DENV")
+        for _, v in vars.items():
+            if v:
+                print(" ".join(["  >", v]))
+    elif action == "blender":
+        binary = str(vars.get("blender"))
+        if passing:
+            ps = []
+            for p in passes:
+                ps.extend(p.split("="))
+            ps.insert(0, binary)
+            subprocess.call(ps)
+        else:
+            sys.stdout.write(for_alias(binary))
     elif action == "bpy":
-        sys.stdout.write(for_alias(str(vars.get("bpy"))))
+        binary = str(vars.get("bpy"))
+        if passing:
+            ps = []
+            for p in passes:
+                ps.extend(p.split("="))
+            ps.insert(0, binary)
+            subprocess.call(ps)
+        else:
+            sys.stdout.write(for_alias(binary))
     elif action == "install":
         install(vars)
     elif action == "uninstall":

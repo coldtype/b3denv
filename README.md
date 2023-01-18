@@ -11,3 +11,8 @@ Then you can run it:
 `. ./setup.sh`
 
 And you'll have `bpy` and `blender` available as aliases in your bash (dynamically)
+
+## Development
+- `pip install -e .`
+- `b3denv bpy -c -m venv venv`
+- `source venv/bin/activate`
