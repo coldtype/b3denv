@@ -248,7 +248,7 @@ def main():
     else:
         addon_name = None
 
-    if action == "version":
+    if action == "--version" or action == "-v":
         return "0.0.2"
     
     kwargs = {}
@@ -281,7 +281,7 @@ def main():
     elif action == "inline":
         inline_dependencies(vars)
     else:
-        print(f"Action ({action}) not recognized")
+        print("Action not recognized", action)
 
 
 if __name__ == "__main__":
