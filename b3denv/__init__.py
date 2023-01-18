@@ -19,6 +19,13 @@ def get_vars(addon_name):
     if not blender:
         if on_mac():
             blender = "/Applications/Blender.app/"
+        elif on_windows():
+            folder = "C:\\Program Files\\Blender Foundation"
+            blenders = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isdir(os.path.join(folder, f))]
+            blenders.sort()
+            if len(blenders) == 0:
+                print("Could not find a blender installation. Either install one to the default location or specify one with environment variable BLENDER_PATH")
+            blender = os.path.join(blenders[-1], "blender.exe")
 
     blender = os.path.abspath(os.path.expanduser(blender))
 
