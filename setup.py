@@ -10,13 +10,13 @@ More info available at: [coldtype.xyz](https://coldtype.xyz)
 
 setuptools.setup(
     name="b3denv",
-    version="0.0.4",
+    version="0.0.5",
     author="Rob Stenson / Coldtype",
     author_email="rob@goodhertz.com",
     description="Help with blender python",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/coldtype/b3denv",
+    url="https://github.com/stenson/b3denv",
     packages=[
         "b3denv",
     ],

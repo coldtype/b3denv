@@ -263,7 +263,7 @@ def main():
                 args.append(a)
     
     if "-v" in dashes or "--version" in dashes:
-        return "0.0.4"
+        return "0.0.5"
 
     if len(args) == 1:
         print("b3denv <action> <extension-name>?")
