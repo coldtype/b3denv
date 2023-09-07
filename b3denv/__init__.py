@@ -251,9 +251,9 @@ def main():
     dashes, passes, args = [], [], []
     
     for a in argv:
-        if a == "-c":
+        if a in ["-m", "-c"]:
             passing = True
-            continue
+            #continue
         if passing:
             passes.append(a)
         else:
@@ -263,7 +263,7 @@ def main():
                 args.append(a)
     
     if "-v" in dashes or "--version" in dashes:
-        return "0.0.6"
+        return "0.0.7"
 
     if len(args) == 1:
         print("b3denv <action> <extension-name>?")

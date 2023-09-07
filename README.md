@@ -14,5 +14,5 @@ And you'll have `bpy` and `blender` available as aliases in your bash (dynamical
 
 ## Development
 - `pip install -e .`
-- `b3denv bpy -c -m venv venv`
+- `b3denv bpy -m venv venv`
 - `source venv/bin/activate`
