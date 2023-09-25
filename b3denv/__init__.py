@@ -284,9 +284,9 @@ def main():
 
     if action == "paths":
         print(">>> B3DENV")
-        for _, v in vars.items():
+        for k, v in vars.items():
             if v:
-                print(" ".join(["  >", v]))
+                print(k + " ".join([" >", v]))
     elif action == "blender":
         binary = str(vars.get("blender"))
         if passing:
