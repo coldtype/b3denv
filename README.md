@@ -16,7 +16,7 @@ So, on the command line:
 pip install b3denv
 ```
 
-This installs a `b3denv` command-line tool.
+This installs a `b3denv` command-line tool. (If it doesn't, `b3denv` should still be available as a subprocess of your python interpreter, i.e. you could replace `b3denv` as a command with `py.exe -m b3denv` and get the same results, if you're on Windows and only have a py.exe for instance.)
 
 To verify `b3denv` is working:
 
