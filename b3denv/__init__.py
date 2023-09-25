@@ -257,7 +257,7 @@ def for_alias(s):
         s = s.replace("C:", "/c")
     return s
 
-version = "0.0.7"
+version = "0.0.8"
 
 def print_header():
     print(
