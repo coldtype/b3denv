@@ -160,7 +160,7 @@ def fill_out_python(vars):
 
         file.extractall(path=version_folder)
         src = os.path.join(version_folder, ("Python-" + version + "/Include"))
-        dst_include = os.path.join(os.path.dirname(os.path.dirname(python)),  "include")
+        dst_include = os.path.join(os.path.dirname(os.path.dirname(python)), "include")
         dst = os.path.join(dst_include, os.listdir(dst_include)[0])
 
         for f in os.listdir(src):
@@ -171,10 +171,16 @@ def fill_out_python(vars):
             print(src_fp)
             print(dst_fp)
 
-            if os.path.isdir(src_fp):
-                shutil.copytree(src_fp, dst_fp)
-            else:
-                shutil.copy2(src_fp, dst_fp)
+            try:
+                if os.path.isdir(src_fp):
+                    shutil.copytree(src_fp, dst_fp)
+                else:
+                    shutil.copy2(src_fp, dst_fp)
+            except OSError:
+                pass
+        
+        #dst_headers_symlink = os.path.join(os.path.dirname(dst_include), "Headers")
+        #os.symlink(dst, dst_headers_symlink)
 
     download(python_version)
     print("done")
@@ -260,6 +266,14 @@ def for_alias(s):
         s = s.replace("C:", "/c")
     return s
 
+def show_in_finder(path):
+    if on_mac():
+        subprocess.call(["open", path])
+    elif on_windows():
+        subprocess.call(["explorer", path])
+    else:
+        print("show not implemented for this platform")
+
 version = "0.0.9"
 
 def print_header():
@@ -320,6 +334,9 @@ def main():
         subprocess.call(ps)
     elif action == "download":
         fill_out_python(get_vars(None))
+        print("-------------------------------")
+        print("!!! You may now need to `pip install setuptools -U` to get around an issue with pip not finding Python.h correctly")
+        print("-------------------------------")
     else:
         if len(args) > 2:
             addon_name = args[2]
@@ -338,13 +355,11 @@ def main():
         elif action == "uninstall":
             uninstall(vars)
         elif action == "show":
-            addon_path = vars.get("addon_path")
-            if on_mac():
-                subprocess.call(["open", addon_path])
-            elif on_windows():
-                subprocess.call(["explorer", addon_path])
+            if addon_name in ["blender", "python"]:
+                show_in_finder(os.path.dirname(vars.get(addon_name)))
             else:
-                print("not implemented for this platform")
+                addon_path = vars.get("addon_path")
+                show_in_finder(addon_path)
         elif action == "release":
             release(vars, suffix=kwargs.get("suffix"))
         elif action == "inline":
