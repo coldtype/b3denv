@@ -25,12 +25,15 @@ def get_vars(addon_name):
             p2 = subprocess.Popen([which_python, "-c", "import sysconfig;print(sysconfig.get_config_var('installed_base'))"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p2.communicate()
             installed_base = out.strip()
+            if isinstance(installed_base, bytes):
+                installed_base = installed_base.decode("utf-8")
+            #print("Installed base", installed_base)
             if on_mac():
                 d1 = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(installed_base))))
                 if "Blender" in os.path.basename(d1):
                     blender = d1
         except Exception as e:
-            print("failed", e)
+            #print("failed", e)
             pass
     
     if not blender:
