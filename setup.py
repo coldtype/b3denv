@@ -10,7 +10,7 @@ More info available at: [coldtype.xyz](https://coldtype.xyz)
 
 setuptools.setup(
     name="b3denv",
-    version="0.0.8",
+    version="0.0.9",
     author="Rob Stenson / Coldtype",
     author_email="rob@goodhertz.com",
     description="Help with blender python",

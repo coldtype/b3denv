@@ -260,7 +260,7 @@ def for_alias(s):
         s = s.replace("C:", "/c")
     return s
 
-version = "0.0.8"
+version = "0.0.9"
 
 def print_header():
     print(
@@ -281,7 +281,8 @@ def main():
     
     if arg_count == 2:
         if "-v" in args or "--version" in args:
-            return version
+            print(version)
+            return
 
     if arg_count == 1:
         print_header()
