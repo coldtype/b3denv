@@ -14,7 +14,24 @@ def get_vars(addon_name):
         addon_source = None
     
     blender = os.environ.get("BLENDER_PATH")
-    #blender = config.get("BLENDER")
+    
+    if not blender:
+        # try to figure out if we're in a virtualenv created with an embedded version of Blender's python
+        # if we are, set the blender to that version of Blender
+        try:
+            p1 = subprocess.Popen(["which", "python"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p1.communicate()
+            which_python = out.strip()
+            p2 = subprocess.Popen([which_python, "-c", "import sysconfig;print(sysconfig.get_config_var('installed_base'))"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p2.communicate()
+            installed_base = out.strip()
+            if on_mac():
+                d1 = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(installed_base))))
+                if "Blender" in os.path.basename(d1):
+                    blender = d1
+        except Exception as e:
+            print("failed", e)
+            pass
     
     if not blender:
         if on_mac():
@@ -53,8 +70,6 @@ def get_vars(addon_name):
             if name.startswith("python"):
                 python = os.path.join(python_folder, f)
 
-        bpy = python
-
         blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
 
         return {
@@ -62,7 +77,7 @@ def get_vars(addon_name):
             "addon_source": addon_source,
             "addon_path": addon_path,
             "addon": addon,
-            "bpy": bpy,
+            "python": python,
             "blender": blender_executable
         }
     elif on_windows():
@@ -77,7 +92,6 @@ def get_vars(addon_name):
         
         python_folder = os.path.join(parent, version, "python\\bin")
         python = os.path.join(python_folder, "python.exe")
-        bpy = python
 
         blenders_appdata = os.path.abspath(os.path.expanduser("~\\AppData\\Roaming\\Blender Foundation\\Blender"))
         addon_path = os.path.join(blenders_appdata, version, "scripts\\addons")
@@ -94,7 +108,7 @@ def get_vars(addon_name):
             "addon_source": addon_source,
             "addon_path": addon_path,
             "addon": addon,
-            "bpy": bpy,
+            "python": python,
             "blender": blender_executable
         }
 
@@ -119,17 +133,16 @@ def inline_dependencies(vars):
 
 
 def fill_out_python(vars):
-    bpy = vars.get("bpy")
-    bpy_version = subprocess.check_output([bpy, "--version"]).split(" ")[-1].strip()
+    python = vars.get("python")
+    python_version = subprocess.check_output([python, "--version"]).split(" ")[-1].strip()
 
     #import urllib.request
     import shutil
-    import sys
     import requests, tarfile, tempfile
 
     package = os.path.dirname(os.path.abspath(__file__))
     versions_folder = os.path.join(package, "versions")
-    version_folder = os.path.join(versions_folder, bpy_version)
+    version_folder = os.path.join(versions_folder, python_version)
     if not os.path.exists(versions_folder):
         os.mkdir(versions_folder)
     if not os.path.exists(version_folder):
@@ -144,7 +157,7 @@ def fill_out_python(vars):
 
         file.extractall(path=version_folder)
         src = os.path.join(version_folder, ("Python-" + version + "/Include"))
-        dst_include = os.path.join(os.path.dirname(os.path.dirname(bpy)),  "include")
+        dst_include = os.path.join(os.path.dirname(os.path.dirname(python)),  "include")
         dst = os.path.join(dst_include, os.listdir(dst_include)[0])
 
         for f in os.listdir(src):
@@ -160,7 +173,7 @@ def fill_out_python(vars):
             else:
                 shutil.copy2(src_fp, dst_fp)
 
-    download(bpy_version)
+    download(python_version)
     print("done")
 
 
@@ -244,89 +257,96 @@ def for_alias(s):
         s = s.replace("C:", "/c")
     return s
 
+version = "0.0.7"
+
+def print_header():
+    print(
+""" _   ___   _             
+| |_|_  |_| |___ ___ _ _ 
+| . |_  | . | -_|   | | |
+|___|___|___|___|_|_|\_/ v""" + version)
+
+
 def main():
     argv = sys.argv
+    args = []
 
-    passing = False
-    dashes, passes, args = [], [], []
+    arg_count = len(argv)
     
     for a in argv:
-        if a in ["-m", "-c"]:
-            passing = True
-            #continue
-        if passing:
-            passes.append(a)
-        else:
-            if a.startswith("-"):
-                dashes.append(a)
-            else:
-                args.append(a)
+        args.append(a)
     
-    if "-v" in dashes or "--version" in dashes:
-        return "0.0.7"
+    if arg_count == 2:
+        if "-v" in args or "--version" in args:
+            return version
 
-    if len(args) == 1:
-        print("b3denv <action> <extension-name>?")
+    if arg_count == 1:
+        print_header()
         return
 
     action = args[1]
-    if len(args) > 2:
-        addon_name = args[2]
-    else:
-        addon_name = None
-    
-    kwargs = {}
-    if len(args) > 3 and "=" in args[3]:
-        pairs = [p.split("=") for p in args[3].split(",")]
-        kwargs = {k:v for k,v in pairs}
-    
-    vars = get_vars(addon_name)
 
     if action == "paths":
-        print(">>> B3DENV")
+        vars = get_vars(None)
+        out = []
         for k, v in vars.items():
-            if v:
-                print(k + " ".join([" >", v]))
+           if v:
+               out.append('  "' + k + '": "' + v + '"')
+        print("{")
+        print(",\n".join(out))
+        print("}")
+    elif action == "print":
+        vars = get_vars(None)
+        sys.stdout.write(for_alias(vars.get(args[2])))
     elif action == "blender":
+        vars = get_vars(None)
         binary = str(vars.get("blender"))
-        if passing:
-            ps = []
-            for p in passes:
-                ps.extend(p.split("="))
-            ps.insert(0, binary)
-            subprocess.call(ps)
-        else:
-            sys.stdout.write(for_alias(binary))
-    elif action == "bpy":
-        binary = str(vars.get("bpy"))
-        if passing:
-            ps = []
-            for p in passes:
-                ps.extend(p.split("="))
-            ps.insert(0, binary)
-            subprocess.call(ps)
-        else:
-            sys.stdout.write(for_alias(binary))
-    elif action == "install":
-        install(vars)
-    elif action == "uninstall":
-        uninstall(vars)
-    elif action == "show":
-        addon_path = vars.get("addon_path")
-        if on_mac():
-            subprocess.call(["open", addon_path])
-        elif on_windows():
-            subprocess.call(["explorer", addon_path])
-        else:
-            print("not implemented for this platform")
-    elif action == "release":
-        release(vars, suffix=kwargs.get("suffix"))
+        ps = []
+        for p in args[2:]:
+            ps.extend(p.split("="))
+        ps.insert(0, binary)
+        subprocess.call(ps)
+    elif action == "bpy" or action == "python":
+        vars = get_vars(None)
+        binary = str(vars.get("python"))
+        ps = []
+        for p in args[2:]:
+            ps.extend(p.split("="))
+        ps.insert(0, binary)
+        subprocess.call(ps)
     elif action == "download":
-        fill_out_python(vars)
-    elif action == "inline":
-        inline_dependencies(vars)
+        fill_out_python(get_vars(None))
     else:
-        print("Action not recognized", action)
+        if len(args) > 2:
+            addon_name = args[2]
+        else:
+            addon_name = None
+        
+        kwargs = {}
+        if len(args) > 3 and "=" in args[3]:
+            pairs = [p.split("=") for p in args[3].split(",")]
+            kwargs = {k:v for k,v in pairs}
+        
+        vars = get_vars(addon_name)
+
+        if action == "install":
+            install(vars)
+        elif action == "uninstall":
+            uninstall(vars)
+        elif action == "show":
+            addon_path = vars.get("addon_path")
+            if on_mac():
+                subprocess.call(["open", addon_path])
+            elif on_windows():
+                subprocess.call(["explorer", addon_path])
+            else:
+                print("not implemented for this platform")
+        elif action == "release":
+            release(vars, suffix=kwargs.get("suffix"))
+        elif action == "inline":
+            inline_dependencies(vars)
+        else:
+            print("Action not recognized", action)
 
 
 if __name__ == "__main__":

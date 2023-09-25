@@ -16,7 +16,7 @@ setuptools.setup(
     description="Help with blender python",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/stenson/b3denv",
+    url="https://github.com/coldtype/b3denv",
     packages=[
         "b3denv",
     ],
