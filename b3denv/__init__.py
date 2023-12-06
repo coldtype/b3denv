@@ -55,7 +55,7 @@ def get_vars(addon_name):
         for p in os.listdir(res):
             if os.path.isdir(os.path.join(res, p)):
                 name = os.path.basename(p)
-                if re.match(r"[23]{1}\.[0-9]{1,2}", name):
+                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
                     version = name
         
         addon_path = "".join(["~/Library/Application Support/Blender/", version, "/scripts/addons"])
