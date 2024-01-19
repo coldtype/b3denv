@@ -284,7 +284,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.1.0"
+version = "0.0.10"
 
 def print_header():
     print(
