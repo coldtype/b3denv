@@ -137,6 +137,7 @@ def inline_dependencies(vars):
 
 def fill_out_python(vars):
     python = vars.get("python")
+
     python_version_output = subprocess.check_output([python, "--version"])
     if isinstance(python_version_output, bytes):
         python_version_output = python_version_output.decode("utf-8")
@@ -164,12 +165,14 @@ def fill_out_python(vars):
         file.extractall(path=version_folder)
         src = os.path.join(version_folder, ("Python-" + version + "/Include"))
         dst_include = os.path.join(os.path.dirname(os.path.dirname(python)), "include")
+
+        python_name = os.path.basename(python)
         
         if not os.path.exists(dst_include):
             os.mkdir(dst_include)
         
-        if not os.path.exists(os.path.join(dst_include, python_version)):
-            os.mkdir(os.path.join(dst_include, python_version))
+        if not os.path.exists(os.path.join(dst_include, python_name)):
+            os.mkdir(os.path.join(dst_include, python_name))
         
         dst = os.path.join(dst_include, os.listdir(dst_include)[0])
 
