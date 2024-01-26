@@ -204,7 +204,11 @@ def install(vars):
     addon = vars.get("addon")
     
     if os.path.exists(addon):
-        os.unlink(addon)
+        if os.path.isdir(addon):
+            from shutil import rmtree
+            rmtree(addon)
+        else:
+            os.unlink(addon)
 
     if on_mac():
         subprocess.call(["ln", "-s", addon_source, addon])
@@ -220,7 +224,9 @@ def uninstall(vars):
     addon = vars.get("addon")
 
     if on_mac():
-        if os.path.exists(addon): os.unlink(addon)
+        if os.path.exists(addon):
+            os.unlink(addon)
+        
         print("Uninstalled symlink:", addon)
         #subprocess.call(["ln", "-s", addon_source, addon])
         #print("SOURCE", addon_source)
