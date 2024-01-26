@@ -120,10 +120,13 @@ def inline_dependencies(vars):
     addon_source = vars.get("addon_source")
     parent = os.path.dirname(addon_source)
     venv = os.path.join(parent, "venv")
+    benv = os.path.join(parent, "benv")
 
     if not os.path.exists(venv):
-        print("no venv found!")
-        return
+        venv = benv
+        if not os.path.exists(venv):
+            print("no venv/benv found!")
+            return
     
     if on_windows():
         packages = os.path.join(venv, "Lib", "site-packages")
