@@ -61,3 +61,7 @@ And you'll have `bpy` and `blender` available as aliases in your bash (dynamical
 - `pip install -e .`
 - `b3denv python -m venv venv`
 - `source venv/bin/activate`
+
+## Helpful additional things
+
+- https://blender.stackexchange.com/questions/155247/how-to-add-a-shortcut-for-reload-scripts
