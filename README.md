@@ -65,3 +65,5 @@ And you'll have `bpy` and `blender` available as aliases in your bash (dynamical
 ## Helpful additional things
 
 - https://blender.stackexchange.com/questions/155247/how-to-add-a-shortcut-for-reload-scripts
+- May be necessary: https://github.com/txoof/codesign
+
