@@ -317,14 +317,14 @@ def main():
     
     if arg_count == 2:
         if "-v" in args or "--version" in args:
-            print(version)
+            print_header()
             return
 
     if arg_count == 1:
         print_header()
-        return
-
-    action = args[1]
+        action = "blender"
+    else:
+        action = args[1]
 
     if action == "paths":
         vars = get_vars(None)
@@ -338,7 +338,7 @@ def main():
     elif action == "print":
         vars = get_vars(None)
         sys.stdout.write(for_alias(vars.get(args[2])))
-    elif action == "blender":
+    elif action == "blender" or action == "b":
         vars = get_vars(None)
         binary = str(vars.get("blender"))
         ps = []
@@ -346,7 +346,7 @@ def main():
             ps.extend(p.split("="))
         ps.insert(0, binary)
         subprocess.call(ps)
-    elif action == "bpy" or action == "python":
+    elif action == "bpy" or action == "python" or action == "py" or action == "p":
         vars = get_vars(None)
         binary = str(vars.get("python"))
         ps = []
