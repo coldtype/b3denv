@@ -52,6 +52,11 @@ You can also run `b3denv uninstall <addon-name>` to uninstall, and `b3denv show`
 - `b3denv python -m venv benv`
 - `source benv/bin/activate`
 
+## Building an executable
+
+- `pyinstaller b3denv.spec`
+- `ditto dist/b3denv/b3denv ~/Coldtype/bin` (to test the b3denv executable on Rob’s particular setup, i.e. Coldtype/bin is on the PATH)
+
 ## Command reference
 
 - `b3denv`
