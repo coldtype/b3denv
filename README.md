@@ -48,9 +48,9 @@ You can also run `b3denv uninstall <addon-name>` to uninstall, and `b3denv show`
 
 ## Development
 
+- `python -m venv venv`
+- activate the venv
 - `pip install -e .`
-- `b3denv python -m venv benv`
-- `source benv/bin/activate`
 
 ## Building an executable
 
