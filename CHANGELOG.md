@@ -12,3 +12,8 @@
 ## [0.0.10] - 2024-01-19
 ### Fixed
 - Accept 4 as a valid Blender version
+
+## [0.0.11] - 2024-01-30
+### Fixed
+- Accept 4 as valid Blender version on win
+- Cleaned up a bunch of stuff

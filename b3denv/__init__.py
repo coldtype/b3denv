@@ -119,8 +119,7 @@ def clean_dependencies(vars):
     addon_source = vars.get("addon_source")
     inline_packages = os.path.join(addon_source, "inline-packages")
     
-    from shutil import rmtree
-    rmtree(inline_packages)
+    shutil.rmtree(inline_packages)
 
 def inline_dependencies(vars):
     addon_source = vars.get("addon_source")
@@ -232,12 +231,12 @@ def uninstall(vars):
     addon = vars.get("addon")
 
     if os.path.exists(addon):
-        if os.path.isdir(addon):
-            shutil.rmtree(addon)
-            print("Uninstalled source:", addon)
-        else:
+        if os.path.islink(addon):
             os.unlink(addon)
             print("Uninstalled symlink:", addon)
+        else:
+            shutil.rmtree(addon)
+            print("Uninstalled source:", addon)
 
 
 def release(vars, suffix=None):
@@ -300,7 +299,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.10"
+version = "0.0.11"
 
 def print_header():
     print(
