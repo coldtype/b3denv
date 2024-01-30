@@ -115,6 +115,12 @@ def get_vars(addon_name):
             "blender": blender_executable
         }
 
+def clean_dependencies(vars):
+    addon_source = vars.get("addon_source")
+    inline_packages = os.path.join(addon_source, "inline-packages")
+    
+    from shutil import rmtree
+    rmtree(inline_packages)
 
 def inline_dependencies(vars):
     addon_source = vars.get("addon_source")
@@ -223,17 +229,15 @@ def install(vars):
 
 
 def uninstall(vars):
-    addon_source = vars.get("addon_source")
     addon = vars.get("addon")
 
-    if on_mac():
-        if os.path.exists(addon):
+    if os.path.exists(addon):
+        if os.path.isdir(addon):
+            shutil.rmtree(addon)
+            print("Uninstalled source:", addon)
+        else:
             os.unlink(addon)
-        
-        print("Uninstalled symlink:", addon)
-        #subprocess.call(["ln", "-s", addon_source, addon])
-        #print("SOURCE", addon_source)
-        #print("SYMLINK", addon)
+            print("Uninstalled symlink:", addon)
 
 
 def release(vars, suffix=None):
@@ -386,6 +390,8 @@ def main():
             release(vars, suffix=kwargs.get("suffix"))
         elif action == "inline":
             inline_dependencies(vars)
+        elif action == "clean":
+            clean_dependencies(vars)
         else:
             print("Action not recognized", action)
 
