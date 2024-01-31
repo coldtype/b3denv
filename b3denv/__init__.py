@@ -208,15 +208,10 @@ def fill_out_python(vars):
 
 
 def install(vars):
+    uninstall(vars)
+
     addon_source = vars.get("addon_source")
     addon = vars.get("addon")
-    
-    if os.path.exists(addon):
-        if os.path.isdir(addon):
-            from shutil import rmtree
-            rmtree(addon)
-        else:
-            os.unlink(addon)
 
     if on_mac():
         subprocess.call(["ln", "-s", addon_source, addon])
