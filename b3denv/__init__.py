@@ -46,6 +46,21 @@ def get_vars(addon_name):
             if len(blenders) == 0:
                 print("Could not find a blender installation. Either install one to the default location or specify one with environment variable BLENDER_PATH")
             blender = os.path.join(blenders[-1], "blender.exe")
+        elif on_linux():
+            blender = None
+            for path in os.get_exec_path():
+                try:
+                    for file in os.scandir(path):
+                        if file.name == "blender" and file.is_file():
+                            print("file.path: ", file.path)
+                            blender = file.path
+                            break
+                except FileNotFoundError:
+                    pass
+            if blender is None:
+                raise Exception("Couldn't find blender on PATH")
+            # this will raise an OSError if blender is a broken symlink
+            blender = os.path.realpath(blender, strict=True)
 
     blender = os.path.abspath(os.path.expanduser(blender))
 
@@ -82,6 +97,42 @@ def get_vars(addon_name):
             "addon": addon,
             "python": python,
             "blender": blender_executable
+        }
+    elif on_linux():
+        version = None
+        parent = os.path.dirname(blender)
+
+        for p in os.listdir(parent):
+            if os.path.isdir(os.path.join(parent, p)):
+                name = os.path.basename(p)
+                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                    version = name
+
+        python_folder = os.path.join(parent, version, "python/bin")
+        python = [
+            file.path
+            for file in os.scandir(python_folder)
+            if file.name.startswith("python")
+        ][0]
+
+        blenders_appdata = os.path.abspath(
+            os.path.expanduser("~/.config/blender/")
+        )
+        addon_path = os.path.join(blenders_appdata, version, "scripts/addons")
+
+        if addon_name:
+            addon = os.path.join(addon_path, addon_name)
+        else:
+            addon = None
+
+        blender_executable = blender
+        return {
+            "addon_name": addon_name,
+            "addon_source": addon_source,
+            "addon_path": addon_path,
+            "addon": addon,
+            "python": python,
+            "blender": blender_executable,
         }
     elif on_windows():
         version = None
