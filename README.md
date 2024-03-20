@@ -54,7 +54,7 @@ You can also run `b3denv uninstall <addon-name>` to uninstall, and `b3denv show`
 
 ## Building an executable
 
-- `pyinstaller b3denv.spec`
+- `pyinstaller b3denv.py --onefile`
 - `ditto dist/b3denv/b3denv ~/Coldtype/bin` (to test the b3denv executable on Rob’s particular setup, i.e. Coldtype/bin is on the PATH)
 
 ## Command reference

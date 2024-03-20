@@ -1,4 +1,4 @@
-pyinstaller b3denv.spec
+pyinstaller b3denv.py --onefile
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     ditto dist/b3denv ~/Coldtype/bin
