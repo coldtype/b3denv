@@ -118,25 +118,33 @@ def get_vars(addon_name):
 def clean_dependencies(vars):
     addon_source = vars.get("addon_source")
     inline_packages = os.path.join(addon_source, "inline-packages")
-    
-    shutil.rmtree(inline_packages)
+    if os.path.exists(inline_packages):
+        shutil.rmtree(inline_packages)
 
-def inline_dependencies(vars):
+def inline_dependencies(vars, require_b3denv_venv=False):
     addon_source = vars.get("addon_source")
     parent = os.path.dirname(addon_source)
+
+    b3denv_venv = os.path.join(parent, "b3denv_venv")
     venv = os.path.join(parent, "venv")
     benv = os.path.join(parent, "benv")
 
-    if not os.path.exists(venv):
-        venv = benv
-        if not os.path.exists(venv):
-            print("no venv/benv found!")
-            return
+    primary_venv = b3denv_venv
+
+    if not require_b3denv_venv:
+        if not os.path.exists(b3denv_venv):
+            primary_venv = venv
+            if not os.path.exists(venv):
+                primary_venv = benv
+    
+    if not os.path.exists(primary_venv):
+        print("no b3denv_venv found!")
+        return
     
     if on_windows():
-        packages = os.path.join(venv, "Lib", "site-packages")
+        packages = os.path.join(primary_venv, "Lib", "site-packages")
     else:
-        packages = glob.glob(os.path.join(venv, "lib", "*", "site-packages"))
+        packages = glob.glob(os.path.join(primary_venv, "lib", "*", "site-packages"))
         if packages and os.path.exists(packages[0]):
             packages = packages[0]
     print(packages)
@@ -294,7 +302,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.13"
+version = "0.0.14"
 
 def print_header():
     print(
@@ -363,6 +371,13 @@ def main():
         else:
             addon_name = None
         
+        spec = "b3denv.spec.json"
+        if os.path.exists(spec):
+            from json import load
+            with open("b3denv.spec.json", "r") as file:
+                spec_data = load(file)
+                addon_name = spec_data.get("addon_name", None)
+        
         kwargs = {}
         if len(args) > 3 and "=" in args[3]:
             pairs = [p.split("=") for p in args[3].split(",")]
@@ -370,7 +385,32 @@ def main():
         
         vars = get_vars(addon_name)
 
-        if action == "install":
+        if action == "setup":
+            from pprint import pprint
+            pprint(vars)
+
+            from pathlib import Path
+            from subprocess import run, check_call
+            from venv import EnvBuilder, create
+
+            venv = Path("b3denv_venv")
+            blender_python = vars.get("python")
+
+            if venv.exists():
+               shutil.rmtree(venv)
+            
+            create(venv, clear=True, with_pip=True)
+
+            venv_python = venv / "bin/python"
+            if not venv_python.exists():
+                venv_python = venv / "Scripts/python.exe"
+            
+            check_call([venv_python, "-m", "pip", "install", "-r", "requirements_mac.txt"])
+
+            clean_dependencies(vars)
+            inline_dependencies(vars, require_b3denv_venv=True)
+
+        elif action == "install":
             install(vars)
         elif action == "uninstall":
             uninstall(vars)
