@@ -328,6 +328,11 @@ def main():
 
     if arg_count == 1:
         print_header()
+        vars = get_vars(None)
+        current_blender = vars.get("blender")
+        print("-"*len(str(current_blender)))
+        print(current_blender)
+        print("-"*len(str(current_blender)))
         action = "blender"
     else:
         action = args[1]
@@ -386,25 +391,22 @@ def main():
         vars = get_vars(addon_name)
 
         if action == "setup":
-            # requires python3
-            from pathlib import Path
-            from subprocess import check_call
-            from venv import create
-
             uninstall(vars)
-
-            venv = Path("b3denv_venv")
-
-            if venv.exists():
-               shutil.rmtree(venv)
             
-            create(venv, clear=True, with_pip=True)
+            venv = "b3denv_venv"
+            if os.path.exists(venv):
+               shutil.rmtree(venv)
+
+            blender_python = vars.get("python")
+            subprocess.call([blender_python, "-m", "venv", venv])
 
             venv_python = venv / "bin/python"
             if not venv_python.exists():
                 venv_python = venv / "Scripts/python.exe"
             
-            check_call([venv_python, "-m", "pip", "install", "-r", "requirements_mac.txt"])
+            print(">", venv_python)
+            subprocess.call([venv_python, "--version"])
+            subprocess.call([venv_python, "-m", "pip", "install", "-r", "requirements_mac.txt"])
 
             clean_dependencies(vars)
             inline_dependencies(vars, require_b3denv_venv=True)
