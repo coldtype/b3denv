@@ -386,15 +386,14 @@ def main():
         vars = get_vars(addon_name)
 
         if action == "setup":
-            from pprint import pprint
-            pprint(vars)
-
+            # requires python3
             from pathlib import Path
-            from subprocess import run, check_call
-            from venv import EnvBuilder, create
+            from subprocess import check_call
+            from venv import create
+
+            uninstall(vars)
 
             venv = Path("b3denv_venv")
-            blender_python = vars.get("python")
 
             if venv.exists():
                shutil.rmtree(venv)
@@ -409,6 +408,7 @@ def main():
 
             clean_dependencies(vars)
             inline_dependencies(vars, require_b3denv_venv=True)
+            install(vars)
 
         elif action == "install":
             install(vars)
