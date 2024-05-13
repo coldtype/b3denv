@@ -363,7 +363,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.14"
+version = "0.0.15"
 
 def print_header():
     print(
