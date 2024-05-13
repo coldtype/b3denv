@@ -1,4 +1,4 @@
-import platform, re, os, sys, glob, subprocess, shutil
+import platform, re, os, sys, glob, subprocess, shutil, zipfile
 
 def _os(): return platform.system()
 def on_windows(): return _os() == "Windows"
@@ -288,6 +288,67 @@ def release(vars, suffix=None):
     zf.close()
 
 
+def setup(vars):
+    uninstall(vars)
+            
+    venv = "b3denv_venv"
+    if os.path.exists(venv):
+        shutil.rmtree(venv)
+
+    blender_python = vars.get("python")
+    subprocess.call([blender_python, "-m", "venv", venv])
+
+    venv_python = venv / "bin/python"
+    if not venv_python.exists():
+        venv_python = venv / "Scripts/python.exe"
+    
+    print(">", venv_python)
+    subprocess.call([venv_python, "--version"])
+
+    requirements = "requirements_mac.txt"
+    if on_windows():
+        requirements = "requirements_win.txt"
+    
+    subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
+
+    clean_dependencies(vars)
+    inline_dependencies(vars, require_b3denv_venv=True)
+    install(vars)
+
+
+def addon(vars):
+    # third-party use of an addon that spec'd to work with b3denv
+    # download the git repo to a folder
+    # cd into the folder?
+    # run setup on the addon
+    
+    addon_name = vars.get("addon_name")
+
+    def download_git_repo(url):
+        dest_folder = addon_name
+
+        git_url = "https://github.com/"
+        zip_url = url + "/archive/master.zip"
+        response = urllib2.urlopen(zip_url)
+        
+        # Save the zip file
+        zip_file_path = os.path.join(dest_folder + ".zip")
+        with open(zip_file_path, "wb") as f:
+            f.write(response.read())
+
+        print("Repo '{}' downloaded as '{}.zip'.".format(url, dest_folder))
+
+        # Unzip the downloaded file
+        with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+            zip_ref.extractall(dest_folder)
+
+        print("Repo '{}' unzipped to '{}'.".format(url, dest_folder))
+
+    # Example usage
+    url = "https://github.com/username/repo"
+    download_git_repo(url)
+
+
 def for_alias(s):
     if on_windows():
         s = '"' + os.path.abspath(s).replace('\\', '/') + '"'
@@ -390,28 +451,10 @@ def main():
         
         vars = get_vars(addon_name)
 
-        if action == "setup":
-            uninstall(vars)
-            
-            venv = "b3denv_venv"
-            if os.path.exists(venv):
-               shutil.rmtree(venv)
-
-            blender_python = vars.get("python")
-            subprocess.call([blender_python, "-m", "venv", venv])
-
-            venv_python = venv / "bin/python"
-            if not venv_python.exists():
-                venv_python = venv / "Scripts/python.exe"
-            
-            print(">", venv_python)
-            subprocess.call([venv_python, "--version"])
-            subprocess.call([venv_python, "-m", "pip", "install", "-r", "requirements_mac.txt"])
-
-            clean_dependencies(vars)
-            inline_dependencies(vars, require_b3denv_venv=True)
-            install(vars)
-
+        if action == "addon":
+            addon(vars)
+        elif action == "setup":
+            setup(vars)
         elif action == "install":
             install(vars)
         elif action == "uninstall":
