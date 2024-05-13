@@ -298,9 +298,9 @@ def setup(vars):
     blender_python = vars.get("python")
     subprocess.call([blender_python, "-m", "venv", venv])
 
-    venv_python = venv / "bin/python"
-    if not venv_python.exists():
-        venv_python = venv / "Scripts/python.exe"
+    venv_python = os.path.join(venv, "bin", "python")
+    if not os.path.exists(venv_python):
+        venv_python = os.path.join(venv, "Scripts", "python.exe")
     
     print(">", venv_python)
     subprocess.call([venv_python, "--version"])
