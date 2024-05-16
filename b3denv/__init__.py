@@ -174,7 +174,7 @@ def fill_out_python(vars):
     import requests, tarfile, tempfile
 
     package = os.path.dirname(os.path.abspath(__file__))
-    versions_folder = os.path.join(package, "versions")
+    versions_folder = os.path.join(package, "b3denv_versions")
     version_folder = os.path.join(versions_folder, python_version)
     if not os.path.exists(versions_folder):
         os.mkdir(versions_folder)
