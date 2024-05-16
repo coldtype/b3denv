@@ -50,6 +50,16 @@ def get_vars(addon_name):
     blender = os.path.abspath(os.path.expanduser(blender))
 
     if on_mac():
+        blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
+
+        # output = subprocess.check_output([blender_executable, "-b", "--python-expr", "import sys;print('>>>',sys.executable)"])
+        # if isinstance(output, bytes):
+        #     output = output.decode("utf-8")
+        #     try:
+        #         python_executable = re.search(r">>> ([^\n]+)\n", output).group(1)
+        #     except:
+        #         raise Exception("Could not find embedded python")
+
         res = os.path.join(blender, "Contents/Resources")
         version = None
         for p in os.listdir(res):
@@ -73,14 +83,14 @@ def get_vars(addon_name):
             if name.startswith("python"):
                 python = os.path.join(python_folder, f)
 
-        blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
-
         return {
             "addon_name": addon_name,
             "addon_source": addon_source,
             "addon_path": addon_path,
             "addon": addon,
             "python": python,
+            #"python_executable": python_executable,
+            #"python_match": str(python == python_executable),
             "blender": blender_executable
         }
     elif on_windows():
