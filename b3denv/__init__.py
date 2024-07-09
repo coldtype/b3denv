@@ -117,9 +117,9 @@ def get_vars(addon_name):
 
 def clean_dependencies(vars):
     addon_source = vars.get("addon_source")
-    inline_packages = os.path.join(addon_source, "inline-packages")
     
-    shutil.rmtree(inline_packages)
+    shutil.rmtree(os.path.join(addon_source, "inline-packages"))
+    shutil.rmtree(os.path.join(addon_source, "__pycache__"))
 
 def inline_dependencies(vars):
     addon_source = vars.get("addon_source")
