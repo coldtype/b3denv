@@ -17,3 +17,7 @@
 ### Fixed
 - Accept 4 as valid Blender version on win
 - Cleaned up a bunch of stuff
+
+## [0.0.12] - 2024-01-31
+### Fixed
+- Use uninstall code to uninstall before install command

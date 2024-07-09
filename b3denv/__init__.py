@@ -1,4 +1,4 @@
-import platform, re, os, sys, glob, subprocess, shutil
+import platform, re, os, sys, glob, subprocess, shutil, zipfile
 
 def _os(): return platform.system()
 def on_windows(): return _os() == "Windows"
@@ -50,6 +50,16 @@ def get_vars(addon_name):
     blender = os.path.abspath(os.path.expanduser(blender))
 
     if on_mac():
+        blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
+
+        # output = subprocess.check_output([blender_executable, "-b", "--python-expr", "import sys;print('>>>',sys.executable)"])
+        # if isinstance(output, bytes):
+        #     output = output.decode("utf-8")
+        #     try:
+        #         python_executable = re.search(r">>> ([^\n]+)\n", output).group(1)
+        #     except:
+        #         raise Exception("Could not find embedded python")
+
         res = os.path.join(blender, "Contents/Resources")
         version = None
         for p in os.listdir(res):
@@ -73,14 +83,14 @@ def get_vars(addon_name):
             if name.startswith("python"):
                 python = os.path.join(python_folder, f)
 
-        blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
-
         return {
             "addon_name": addon_name,
             "addon_source": addon_source,
             "addon_path": addon_path,
             "addon": addon,
             "python": python,
+            #"python_executable": python_executable,
+            #"python_match": str(python == python_executable),
             "blender": blender_executable
         }
     elif on_windows():
@@ -117,26 +127,34 @@ def get_vars(addon_name):
 
 def clean_dependencies(vars):
     addon_source = vars.get("addon_source")
-    
-    shutil.rmtree(os.path.join(addon_source, "inline-packages"))
-    shutil.rmtree(os.path.join(addon_source, "__pycache__"))
+    inline_packages = os.path.join(addon_source, "inline-packages")
+    if os.path.exists(inline_packages):
+        shutil.rmtree(inline_packages)
 
-def inline_dependencies(vars):
+def inline_dependencies(vars, require_b3denv_venv=False):
     addon_source = vars.get("addon_source")
     parent = os.path.dirname(addon_source)
+
+    b3denv_venv = os.path.join(parent, "b3denv_venv")
     venv = os.path.join(parent, "venv")
     benv = os.path.join(parent, "benv")
 
-    if not os.path.exists(venv):
-        venv = benv
-        if not os.path.exists(venv):
-            print("no venv/benv found!")
-            return
+    primary_venv = b3denv_venv
+
+    if not require_b3denv_venv:
+        if not os.path.exists(b3denv_venv):
+            primary_venv = venv
+            if not os.path.exists(venv):
+                primary_venv = benv
+    
+    if not os.path.exists(primary_venv):
+        print("no b3denv_venv found!")
+        return
     
     if on_windows():
-        packages = os.path.join(venv, "Lib", "site-packages")
+        packages = os.path.join(primary_venv, "Lib", "site-packages")
     else:
-        packages = glob.glob(os.path.join(venv, "lib", "*", "site-packages"))
+        packages = glob.glob(os.path.join(primary_venv, "lib", "*", "site-packages"))
         if packages and os.path.exists(packages[0]):
             packages = packages[0]
     print(packages)
@@ -156,7 +174,7 @@ def fill_out_python(vars):
     import requests, tarfile, tempfile
 
     package = os.path.dirname(os.path.abspath(__file__))
-    versions_folder = os.path.join(package, "versions")
+    versions_folder = os.path.join(package, "b3denv_versions")
     version_folder = os.path.join(versions_folder, python_version)
     if not os.path.exists(versions_folder):
         os.mkdir(versions_folder)
@@ -208,15 +226,10 @@ def fill_out_python(vars):
 
 
 def install(vars):
+    uninstall(vars)
+
     addon_source = vars.get("addon_source")
     addon = vars.get("addon")
-    
-    if os.path.exists(addon):
-        if os.path.isdir(addon):
-            from shutil import rmtree
-            rmtree(addon)
-        else:
-            os.unlink(addon)
 
     if on_mac():
         subprocess.call(["ln", "-s", addon_source, addon])
@@ -285,6 +298,67 @@ def release(vars, suffix=None):
     zf.close()
 
 
+def setup(vars):
+    uninstall(vars)
+            
+    venv = "b3denv_venv"
+    if os.path.exists(venv):
+        shutil.rmtree(venv)
+
+    blender_python = vars.get("python")
+    subprocess.call([blender_python, "-m", "venv", venv])
+
+    venv_python = os.path.join(venv, "bin", "python")
+    if not os.path.exists(venv_python):
+        venv_python = os.path.join(venv, "Scripts", "python.exe")
+    
+    print(">", venv_python)
+    subprocess.call([venv_python, "--version"])
+
+    requirements = "requirements_mac.txt"
+    if on_windows():
+        requirements = "requirements_win.txt"
+    
+    subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
+
+    clean_dependencies(vars)
+    inline_dependencies(vars, require_b3denv_venv=True)
+    install(vars)
+
+
+def addon(vars):
+    # third-party use of an addon that spec'd to work with b3denv
+    # download the git repo to a folder
+    # cd into the folder?
+    # run setup on the addon
+    
+    addon_name = vars.get("addon_name")
+
+    def download_git_repo(url):
+        dest_folder = addon_name
+
+        git_url = "https://github.com/"
+        zip_url = url + "/archive/master.zip"
+        response = urllib2.urlopen(zip_url)
+        
+        # Save the zip file
+        zip_file_path = os.path.join(dest_folder + ".zip")
+        with open(zip_file_path, "wb") as f:
+            f.write(response.read())
+
+        print("Repo '{}' downloaded as '{}.zip'.".format(url, dest_folder))
+
+        # Unzip the downloaded file
+        with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+            zip_ref.extractall(dest_folder)
+
+        print("Repo '{}' unzipped to '{}'.".format(url, dest_folder))
+
+    # Example usage
+    url = "https://github.com/username/repo"
+    download_git_repo(url)
+
+
 def for_alias(s):
     if on_windows():
         s = '"' + os.path.abspath(s).replace('\\', '/') + '"'
@@ -299,7 +373,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.11"
+version = "0.0.15"
 
 def print_header():
     print(
@@ -325,6 +399,11 @@ def main():
 
     if arg_count == 1:
         print_header()
+        vars = get_vars(None)
+        current_blender = vars.get("blender")
+        print("-"*len(str(current_blender)))
+        print(current_blender)
+        print("-"*len(str(current_blender)))
         action = "blender"
     else:
         action = args[1]
@@ -368,6 +447,13 @@ def main():
         else:
             addon_name = None
         
+        spec = "b3denv.spec.json"
+        if os.path.exists(spec):
+            from json import load
+            with open("b3denv.spec.json", "r") as file:
+                spec_data = load(file)
+                addon_name = spec_data.get("addon_name", None)
+        
         kwargs = {}
         if len(args) > 3 and "=" in args[3]:
             pairs = [p.split("=") for p in args[3].split(",")]
@@ -375,7 +461,11 @@ def main():
         
         vars = get_vars(addon_name)
 
-        if action == "install":
+        if action == "addon":
+            addon(vars)
+        elif action == "setup":
+            setup(vars)
+        elif action == "install":
             install(vars)
         elif action == "uninstall":
             uninstall(vars)
