@@ -373,7 +373,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.15"
+version = "0.0.16"
 
 def print_header():
     print(
@@ -442,21 +442,16 @@ def main():
         print("!!! You may now need to `pip install setuptools -U` to get around an issue with pip not finding Python.h correctly")
         print("-------------------------------")
     else:
-        if len(args) > 2:
-            addon_name = args[2]
-        else:
-            addon_name = None
-        
-        spec = "b3denv.spec.json"
-        if os.path.exists(spec):
-            from json import load
-            with open("b3denv.spec.json", "r") as file:
-                spec_data = load(file)
-                addon_name = spec_data.get("addon_name", None)
+        addon_name = None
+
+        from json import load
+        with open("b3denv.spec.json", "r") as file:
+            spec_data = load(file)
+            addon_name = spec_data.get("addon_name", None)
         
         kwargs = {}
-        if len(args) > 3 and "=" in args[3]:
-            pairs = [p.split("=") for p in args[3].split(",")]
+        if len(args) > 2 and "=" in args[2]:
+            pairs = [p.split("=") for p in args[2].split(",")]
             kwargs = {k:v for k,v in pairs}
         
         vars = get_vars(addon_name)
