@@ -89,6 +89,7 @@ def get_vars(addon_name):
             "addon_path": addon_path,
             "addon": addon,
             "python": python,
+            "version": version,
             #"python_executable": python_executable,
             #"python_match": str(python == python_executable),
             "blender": blender_executable
@@ -253,6 +254,8 @@ def uninstall(vars):
 
 
 def release(vars, suffix=None):
+    setup(vars, do_install=False)
+
     import zipfile, re
 
     addon_name = vars.get("addon_name")
@@ -269,9 +272,9 @@ def release(vars, suffix=None):
     if not os.path.exists(releases):
         os.mkdir(releases)
 
-    release_name = "ST2-v" + mj + "-" + mn
+    release_name = addon_name + "-v" + mj + "-" + mn
     if suffix:
-        release_name = release_name + "_" + suffix
+        release_name = release_name + "_Blender" + vars.get("version") + "_" + suffix
     
     release = os.path.join(releases, release_name + ".zip")
     if os.path.exists(release):
@@ -298,7 +301,7 @@ def release(vars, suffix=None):
     zf.close()
 
 
-def setup(vars):
+def setup(vars, do_install=True):
     uninstall(vars)
             
     venv = "b3denv_venv"
@@ -323,7 +326,8 @@ def setup(vars):
 
     clean_dependencies(vars)
     inline_dependencies(vars, require_b3denv_venv=True)
-    install(vars)
+    if do_install:
+        install(vars)
 
 
 def addon(vars):
@@ -373,7 +377,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.16"
+version = "0.0.17"
 
 def print_header():
     print(
