@@ -265,7 +265,7 @@ def install(vars):
     addon_source = vars.get("addon_source")
     addon = vars.get("addon")
 
-    if on_mac():
+    if on_mac() or on_linux():
         subprocess.call(["ln", "-s", addon_source, addon])
         print("SOURCE", addon_source)
         print("SYMLINK", addon)
@@ -354,6 +354,8 @@ def setup(vars, do_install=True):
     requirements = "requirements_mac.txt"
     if on_windows():
         requirements = "requirements_win.txt"
+    elif on_linux():
+        requirements = "requirements_lin.txt"
     
     subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
 
@@ -403,7 +405,7 @@ def for_alias(s):
     return s
 
 def show_in_finder(path):
-    if on_mac():
+    if on_mac() or on_linux():
         subprocess.call(["open", path])
     elif on_windows():
         subprocess.call(["explorer", path])
