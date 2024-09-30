@@ -33,7 +33,7 @@ def get_vars(addon_name):
                 if "Blender" in os.path.basename(d1):
                     blender = d1
         except Exception as e:
-            #print("failed", e)
+            print("failed", e)
             pass
     
     if not blender:
@@ -51,7 +51,6 @@ def get_vars(addon_name):
 
     if on_mac():
         blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
-
         # output = subprocess.check_output([blender_executable, "-b", "--python-expr", "import sys;print('>>>',sys.executable)"])
         # if isinstance(output, bytes):
         #     output = output.decode("utf-8")
@@ -59,7 +58,6 @@ def get_vars(addon_name):
         #         python_executable = re.search(r">>> ([^\n]+)\n", output).group(1)
         #     except:
         #         raise Exception("Could not find embedded python")
-
         res = os.path.join(blender, "Contents/Resources")
         version = None
         for p in os.listdir(res):
@@ -94,6 +92,41 @@ def get_vars(addon_name):
             #"python_match": str(python == python_executable),
             "blender": blender_executable
         }
+    elif on_linux():
+        blender_executable = os.path.join(blender, "blender")
+        
+        version = None
+        for p in os.listdir(blender):
+            if os.path.isdir(os.path.join(blender, p)):
+                name = os.path.basename(p)
+                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                    version = name
+        
+        addon_path = "".join(["~/.config/blender", version, "/scripts/addons"])
+        addon_path = os.path.abspath(os.path.expanduser(addon_path))
+        if addon_name:
+            addon = os.path.join(addon_path, addon_name)
+        else:
+            addon = None
+        
+        python_folder = os.path.join(blender, version, "python/bin")
+        python = None
+
+        for f in os.listdir(python_folder):
+            name = os.path.basename(f)
+            if name.startswith("python"):
+                python = os.path.join(python_folder, f)
+
+        return {
+            "addon_name": addon_name,
+            "addon_source": addon_source,
+            "addon_path": addon_path,
+            "addon": addon,
+            "python": python,
+            "version": version,
+            "blender": blender_executable
+        }
+
     elif on_windows():
         version = None
         parent = os.path.dirname(blender)
@@ -232,7 +265,7 @@ def install(vars):
     addon_source = vars.get("addon_source")
     addon = vars.get("addon")
 
-    if on_mac():
+    if on_mac() or on_linux():
         subprocess.call(["ln", "-s", addon_source, addon])
         print("SOURCE", addon_source)
         print("SYMLINK", addon)
@@ -321,6 +354,8 @@ def setup(vars, do_install=True):
     requirements = "requirements_mac.txt"
     if on_windows():
         requirements = "requirements_win.txt"
+    elif on_linux():
+        requirements = "requirements_lin.txt"
     
     subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
 
@@ -370,7 +405,7 @@ def for_alias(s):
     return s
 
 def show_in_finder(path):
-    if on_mac():
+    if on_mac() or on_linux():
         subprocess.call(["open", path])
     elif on_windows():
         subprocess.call(["explorer", path])
