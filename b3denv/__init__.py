@@ -377,7 +377,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.17"
+version = "0.0.18"
 
 def print_header():
     print(
@@ -431,6 +431,7 @@ def main():
         for p in args[2:]:
             ps.extend(p.split("="))
         ps.insert(0, binary)
+        print(ps)
         subprocess.call(ps)
     elif action == "bpy" or action == "python" or action == "py" or action == "p":
         vars = get_vars(None)
