@@ -286,8 +286,8 @@ def uninstall(vars):
             print("Uninstalled source:", addon)
 
 
-def release(vars, suffix=None):
-    setup(vars, do_install=False)
+def release(vars, inline=False, suffix=None):
+    setup(vars, do_install=False, inline=inline)
 
     import zipfile, re
 
@@ -314,9 +314,10 @@ def release(vars, suffix=None):
         os.unlink(release)
 
     zf = zipfile.ZipFile(release, "w")
+
     for file in os.listdir(addon_name):
         f = os.path.join(addon_name, file)
-        if not os.path.isdir(f):
+        if not os.path.isdir(f) and ".DS_Store" not in f:
             print("> " + f)
             zf.write(f)
         else:
@@ -334,33 +335,35 @@ def release(vars, suffix=None):
     zf.close()
 
 
-def setup(vars, do_install=True):
+def setup(vars, inline=False, do_install=True):
     uninstall(vars)
-            
-    venv = "b3denv_venv"
-    if os.path.exists(venv):
-        shutil.rmtree(venv)
-
-    blender_python = vars.get("python")
-    subprocess.call([blender_python, "-m", "venv", venv])
-
-    venv_python = os.path.join(venv, "bin", "python")
-    if not os.path.exists(venv_python):
-        venv_python = os.path.join(venv, "Scripts", "python.exe")
     
-    print(">", venv_python)
-    subprocess.call([venv_python, "--version"])
+    if inline:
+        venv = "b3denv_venv"
+        if os.path.exists(venv):
+            shutil.rmtree(venv)
 
-    requirements = "requirements_mac.txt"
-    if on_windows():
-        requirements = "requirements_win.txt"
-    elif on_linux():
-        requirements = "requirements_lin.txt"
-    
-    subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
+        blender_python = vars.get("python")
+        subprocess.call([blender_python, "-m", "venv", venv])
+
+        venv_python = os.path.join(venv, "bin", "python")
+        if not os.path.exists(venv_python):
+            venv_python = os.path.join(venv, "Scripts", "python.exe")
+        
+        print(">", venv_python)
+        subprocess.call([venv_python, "--version"])
+
+        requirements = "requirements_mac.txt"
+        if on_windows():
+            requirements = "requirements_win.txt"
+        elif on_linux():
+            requirements = "requirements_lin.txt"
+        
+        subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
 
     clean_dependencies(vars)
-    inline_dependencies(vars, require_b3denv_venv=True)
+    if inline:
+        inline_dependencies(vars, require_b3denv_venv=True)
     if do_install:
         install(vars)
 
@@ -412,7 +415,7 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.18"
+version = "0.0.19"
 
 def print_header():
     print(
@@ -499,7 +502,7 @@ def main():
         if action == "addon":
             addon(vars)
         elif action == "setup":
-            setup(vars)
+            setup(vars, inline=bool(kwargs.get("inline")))
         elif action == "install":
             install(vars)
         elif action == "uninstall":
@@ -511,7 +514,7 @@ def main():
                 addon_path = vars.get("addon_path")
                 show_in_finder(addon_path)
         elif action == "release":
-            release(vars, suffix=kwargs.get("suffix"))
+            release(vars, suffix=kwargs.get("suffix"), inline=bool(kwargs.get("inline")))
         elif action == "inline":
             inline_dependencies(vars)
         elif action == "clean":
