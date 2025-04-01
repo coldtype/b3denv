@@ -266,6 +266,7 @@ def install(vars):
     addon = vars.get("addon")
 
     if on_mac() or on_linux():
+        os.makedirs(os.path.dirname(addon), exist_ok=True)
         subprocess.call(["ln", "-s", addon_source, addon])
         print("SOURCE", addon_source)
         print("SYMLINK", addon)
