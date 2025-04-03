@@ -20,4 +20,8 @@
 
 ## [0.0.12] - 2024-01-31
 ### Fixed
-- Use uninstall code to uninstall before install command
+- Use uninstall code to uninstall before install 
+
+## [0.0.20] - 2025-04-01
+### Fixed
+- Create target dir on install for non-windows
