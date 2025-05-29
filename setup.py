@@ -23,6 +23,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'b3denv = b3denv:main'
+            'bdv = b3denv:main'
         ],
     },
     classifiers=[
