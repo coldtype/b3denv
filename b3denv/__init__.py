@@ -58,12 +58,14 @@ def get_vars(addon_name):
         #         python_executable = re.search(r">>> ([^\n]+)\n", output).group(1)
         #     except:
         #         raise Exception("Could not find embedded python")
+        
         res = os.path.join(blender, "Contents/Resources")
         version = None
+
         for p in os.listdir(res):
             if os.path.isdir(os.path.join(res, p)):
                 name = os.path.basename(p)
-                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                if re.match(r"[2345]{1}\.[0-9]{1,2}", name):
                     version = name
         
         addon_path = "".join(["~/Library/Application Support/Blender/", version, "/scripts/addons"])
