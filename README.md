@@ -8,7 +8,7 @@ Unfortunately, it's kind of a pain to remember where the Python binary is locate
 
 ## Installation
 
-`b3denv` is designed to work with `uv`
+`b3denv` is designed to work with [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
 
 So, if you've downloaded this repo and cd'd into it, on the command line, you can run:
 
