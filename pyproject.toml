@@ -1,0 +1,31 @@
+[project]
+name = "b3denv"
+version = "0.0.21"
+description = "Help with blender python"
+readme = {text = """
+# b3denv
+
+### Help with setting up bpy/blender/blender addons
+
+More info available at: [coldtype.xyz](https://coldtype.xyz)
+""", content-type = "text/markdown"}
+authors = [
+    {name = "Rob Stenson / Coldtype", email = "rob@goodhertz.com"}
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/coldtype/b3denv"
+
+[project.scripts]
+b3denv = "b3denv:main"
+bdv = "b3denv:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

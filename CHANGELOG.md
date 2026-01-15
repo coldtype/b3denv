@@ -25,3 +25,8 @@
 ## [0.0.20] - 2025-04-01
 ### Fixed
 - Create target dir on install for non-windows
+
+## [0.0.21] - 2026-01-15
+- Accept 5 as a valid Blender version
+- Give up on Python 2 support, because...
+- Start using uv (omg so much better)
