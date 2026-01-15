@@ -1,3 +1,4 @@
+from pathlib import Path
 import platform, re, os, sys, glob, subprocess, shutil, zipfile
 
 def _os(): return platform.system()
@@ -101,7 +102,7 @@ def get_vars(addon_name):
         for p in os.listdir(blender):
             if os.path.isdir(os.path.join(blender, p)):
                 name = os.path.basename(p)
-                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                if re.match(r"[2345]{1}\.[0-9]{1,2}", name):
                     version = name
         
         addon_path = "".join(["~/.config/blender", version, "/scripts/addons"])
@@ -418,14 +419,14 @@ def show_in_finder(path):
     else:
         print("show not implemented for this platform")
 
-version = "0.0.20"
+version = "0.0.21"
 
 def print_header():
     print(
 """ _   ___   _             
 | |_|_  |_| |___ ___ _ _ 
 | . |_  | . | -_|   | | |
-|___|___|___|___|_|_|\_/ v""" + version)
+|___|___|___|___|_|_|\\_/ v""" + version)
 
 
 def main():
@@ -490,10 +491,12 @@ def main():
     else:
         addon_name = None
 
-        from json import load
-        with open("b3denv.spec.json", "r") as file:
-            spec_data = load(file)
+        from json import loads
+        try:
+            spec_data = loads(Path("b3denv.spec.json").read_text())
             addon_name = spec_data.get("addon_name", None)
+        except FileNotFoundError:
+            addon_name = "Unknown"
         
         kwargs = {}
         if len(args) > 2 and "=" in args[2]:

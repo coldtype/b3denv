@@ -4,5 +4,5 @@ requires-python = ">=3.10"
 
 [[package]]
 name = "b3denv"
-version = "0.0.20"
+version = "0.0.21"
 source = { editable = "." }
