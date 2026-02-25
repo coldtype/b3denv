@@ -140,7 +140,7 @@ def get_vars(addon_name):
         for p in os.listdir(parent):
             if os.path.isdir(os.path.join(parent, p)):
                 name = os.path.basename(p)
-                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                if re.match(r"[2345]{1}\.[0-9]{1,2}", name):
                     version = name
                     print(">", os.path.join(parent, p))
         
