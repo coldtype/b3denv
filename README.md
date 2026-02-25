@@ -8,25 +8,25 @@ Unfortunately, it's kind of a pain to remember where the Python binary is locate
 
 ## Installation
 
-`b3denv` is designed to work with _any_ version of Python, since the whole idea of `b3denv` is to leverage your system Python to find and use Blender’s embedded Python to create a virtualenv (so your virtualenv will match the version of Blender’s python exactly, and you won’t have to install any other python (if you don't want to)).
+`b3denv` is designed to work with [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
 
-So, on the command line:
+So, if you've downloaded this repo and cd'd into it, on the command line, you can run:
 
 ```
-pip install b3denv
+uv run b3denv -v
 ```
 
-This installs a `b3denv` command-line tool. (If it doesn’t, `b3denv` should still be available as a subprocess of your python interpreter, i.e. you could replace `b3denv` as a command with `py.exe -m b3denv` and get the same results, if you're on Windows and only have a py.exe for instance.)
+This print out some fun ascii art and a version number. Now try:
 
-To verify `b3denv` is working:
+```
+uv run b3denv paths
+```
 
-- `b3denv paths`
-
-This should show the blender executable and blender python paths for the default installation location.
+This should find your default Blender install and print out some relevant information about it.
 
 ## Use
 
-`b3denv print blender` will print the Blender executable path, i.e. what you want to call in order to start Blender from the command-line. To actually start Blender, you can run `b3denv blender`. To run the embedded python, you can run `b3denv python`, and to show its path, you can run `b3denv print python`.
+`uv run b3denv print blender` will print the Blender executable path, i.e. what you want to call in order to start Blender from the command-line. To actually start Blender, you can run `uv run b3denv blender`. To run the embedded python, you can run `uv run b3denv python`, and to show its path, you can run `uv run b3denv print python`.
 
 ## Non-default Blender installs
 
@@ -36,28 +36,19 @@ To use `b3denv` with a Blender _not_ located at the standard install location fo
 export BLENDER_PATH="~/Desktop/Blenders/Blender3.3.app"
 ```
 
-Then you can run `b3denv paths` to verify that `b3denv` is pointed at that version.
+Then you can run `uv run b3denv paths` to verify that `b3denv` is pointed at that version.
 
-You can also do this on a single-line without modifying your bash location, if you’re looking to create a virtualenv using a specific version of Blender, like so: `BLENDER_PATH="~/Desktop/Blenders/Blender3.3.app" b3denv -m venv b33venv`. Using `b3denv` with that virtualenv activated will then automatically use the version of Blender specified when the virtualenv was created (unless overridden again in subsequent calls to `b3denv`).
+You can also do this on a single-line without modifying your bash location, like so: `BLENDER_PATH="~/Desktop/Blenders/Blender3.3.app" uv run b3denv paths`.
 
 ## Working on Blender addons
 
-If you’re working on a Blender addon locally, in the folder containing your addon code, you can run `b3denv install <addon-name>`, and b3denv will install a symlink to make the addon available in Blender itself.
+If you’re working on a Blender addon locally, in the folder containing your addon code, you can run `uv run b3denv install <addon-name>`, and `b3denv` will install a symlink to make the addon available in Blender itself.
 
-You can also run `b3denv uninstall <addon-name>` to uninstall, and `b3denv show` to open the folder containing all of your installed addons.
-
-## Development
-
-- `python -m venv venv`
-- activate the venv
-- `pip install -e .`
-
-## Building an executable
-
-- `pyinstaller b3denv.spec`
-- `ditto dist/b3denv/b3denv ~/Coldtype/bin` (to test the b3denv executable on Rob’s particular setup, i.e. Coldtype/bin is on the PATH)
+You can also run `uv run b3denv uninstall <addon-name>` to uninstall, and `uv run b3denv show` to open the folder containing all of your installed addons.
 
 ## Command reference
+
+(should probably prefix everything with `uv run`)
 
 - `b3denv`
     - prints current `b3denv` version and opens Blender from the command-line
@@ -87,5 +78,3 @@ You can also run `b3denv uninstall <addon-name>` to uninstall, and `b3denv show`
 ## Helpful additional things (notes to self)
 
 - https://blender.stackexchange.com/questions/155247/how-to-add-a-shortcut-for-reload-scripts
-- May be necessary: https://github.com/txoof/codesign
-

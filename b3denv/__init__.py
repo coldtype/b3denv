@@ -1,3 +1,4 @@
+from pathlib import Path
 import platform, re, os, sys, glob, subprocess, shutil, zipfile
 
 def _os(): return platform.system()
@@ -33,7 +34,7 @@ def get_vars(addon_name):
                 if "Blender" in os.path.basename(d1):
                     blender = d1
         except Exception as e:
-            #print("failed", e)
+            print("failed", e)
             pass
     
     if not blender:
@@ -51,7 +52,6 @@ def get_vars(addon_name):
 
     if on_mac():
         blender_executable = os.path.join(blender, "Contents/MacOS/Blender")
-
         # output = subprocess.check_output([blender_executable, "-b", "--python-expr", "import sys;print('>>>',sys.executable)"])
         # if isinstance(output, bytes):
         #     output = output.decode("utf-8")
@@ -59,13 +59,14 @@ def get_vars(addon_name):
         #         python_executable = re.search(r">>> ([^\n]+)\n", output).group(1)
         #     except:
         #         raise Exception("Could not find embedded python")
-
+        
         res = os.path.join(blender, "Contents/Resources")
         version = None
+
         for p in os.listdir(res):
             if os.path.isdir(os.path.join(res, p)):
                 name = os.path.basename(p)
-                if re.match(r"[234]{1}\.[0-9]{1,2}", name):
+                if re.match(r"[2345]{1}\.[0-9]{1,2}", name):
                     version = name
         
         addon_path = "".join(["~/Library/Application Support/Blender/", version, "/scripts/addons"])
@@ -89,10 +90,46 @@ def get_vars(addon_name):
             "addon_path": addon_path,
             "addon": addon,
             "python": python,
+            "version": version,
             #"python_executable": python_executable,
             #"python_match": str(python == python_executable),
             "blender": blender_executable
         }
+    elif on_linux():
+        blender_executable = os.path.join(blender, "blender")
+        
+        version = None
+        for p in os.listdir(blender):
+            if os.path.isdir(os.path.join(blender, p)):
+                name = os.path.basename(p)
+                if re.match(r"[2345]{1}\.[0-9]{1,2}", name):
+                    version = name
+        
+        addon_path = "".join(["~/.config/blender", version, "/scripts/addons"])
+        addon_path = os.path.abspath(os.path.expanduser(addon_path))
+        if addon_name:
+            addon = os.path.join(addon_path, addon_name)
+        else:
+            addon = None
+        
+        python_folder = os.path.join(blender, version, "python/bin")
+        python = None
+
+        for f in os.listdir(python_folder):
+            name = os.path.basename(f)
+            if name.startswith("python"):
+                python = os.path.join(python_folder, f)
+
+        return {
+            "addon_name": addon_name,
+            "addon_source": addon_source,
+            "addon_path": addon_path,
+            "addon": addon,
+            "python": python,
+            "version": version,
+            "blender": blender_executable
+        }
+
     elif on_windows():
         version = None
         parent = os.path.dirname(blender)
@@ -237,7 +274,8 @@ def install(vars):
     addon_source = vars.get("addon_source")
     addon = vars.get("addon")
 
-    if on_mac():
+    if on_mac() or on_linux():
+        os.makedirs(os.path.dirname(addon), exist_ok=True)
         subprocess.call(["ln", "-s", addon_source, addon])
         print("SOURCE", addon_source)
         print("SYMLINK", addon)
@@ -258,7 +296,9 @@ def uninstall(vars):
             print("Uninstalled source:", addon)
 
 
-def release(vars, suffix=None):
+def release(vars, inline=False, suffix=None):
+    setup(vars, do_install=False, inline=inline)
+
     import zipfile, re
 
     addon_name = vars.get("addon_name")
@@ -275,18 +315,19 @@ def release(vars, suffix=None):
     if not os.path.exists(releases):
         os.mkdir(releases)
 
-    release_name = "ST2-v" + mj + "-" + mn
+    release_name = addon_name + "-v" + mj + "-" + mn
     if suffix:
-        release_name = release_name + "_" + suffix
+        release_name = release_name + "_Blender" + vars.get("version") + "_" + suffix
     
     release = os.path.join(releases, release_name + ".zip")
     if os.path.exists(release):
         os.unlink(release)
 
     zf = zipfile.ZipFile(release, "w")
+
     for file in os.listdir(addon_name):
         f = os.path.join(addon_name, file)
-        if not os.path.isdir(f):
+        if not os.path.isdir(f) and ".DS_Store" not in f:
             print("> " + f)
             zf.write(f)
         else:
@@ -304,32 +345,37 @@ def release(vars, suffix=None):
     zf.close()
 
 
-def setup(vars):
+def setup(vars, inline=False, do_install=True):
     uninstall(vars)
-            
-    venv = "b3denv_venv"
-    if os.path.exists(venv):
-        shutil.rmtree(venv)
-
-    blender_python = vars.get("python")
-    subprocess.call([blender_python, "-m", "venv", venv])
-
-    venv_python = os.path.join(venv, "bin", "python")
-    if not os.path.exists(venv_python):
-        venv_python = os.path.join(venv, "Scripts", "python.exe")
     
-    print(">", venv_python)
-    subprocess.call([venv_python, "--version"])
+    if inline:
+        venv = "b3denv_venv"
+        if os.path.exists(venv):
+            shutil.rmtree(venv)
 
-    requirements = "requirements_mac.txt"
-    if on_windows():
-        requirements = "requirements_win.txt"
-    
-    subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
+        blender_python = vars.get("python")
+        subprocess.call([blender_python, "-m", "venv", venv])
+
+        venv_python = os.path.join(venv, "bin", "python")
+        if not os.path.exists(venv_python):
+            venv_python = os.path.join(venv, "Scripts", "python.exe")
+        
+        print(">", venv_python)
+        subprocess.call([venv_python, "--version"])
+
+        requirements = "requirements_mac.txt"
+        if on_windows():
+            requirements = "requirements_win.txt"
+        elif on_linux():
+            requirements = "requirements_lin.txt"
+        
+        subprocess.call([venv_python, "-m", "pip", "install", "-r", requirements])
 
     clean_dependencies(vars)
-    inline_dependencies(vars, require_b3denv_venv=True)
-    install(vars)
+    if inline:
+        inline_dependencies(vars, require_b3denv_venv=True)
+    if do_install:
+        install(vars)
 
 
 def addon(vars):
@@ -372,21 +418,21 @@ def for_alias(s):
     return s
 
 def show_in_finder(path):
-    if on_mac():
+    if on_mac() or on_linux():
         subprocess.call(["open", path])
     elif on_windows():
         subprocess.call(["explorer", path])
     else:
         print("show not implemented for this platform")
 
-version = "0.0.15"
+version = "0.0.21"
 
 def print_header():
     print(
 """ _   ___   _             
 | |_|_  |_| |___ ___ _ _ 
 | . |_  | . | -_|   | | |
-|___|___|___|___|_|_|\_/ v""" + version)
+|___|___|___|___|_|_|\\_/ v""" + version)
 
 
 def main():
@@ -433,6 +479,7 @@ def main():
         for p in args[2:]:
             ps.extend(p.split("="))
         ps.insert(0, binary)
+        print(ps)
         subprocess.call(ps)
     elif action == "bpy" or action == "python" or action == "py" or action == "p":
         vars = get_vars(None)
@@ -448,21 +495,18 @@ def main():
         print("!!! You may now need to `pip install setuptools -U` to get around an issue with pip not finding Python.h correctly")
         print("-------------------------------")
     else:
-        if len(args) > 2:
-            addon_name = args[2]
-        else:
-            addon_name = None
-        
-        spec = "b3denv.spec.json"
-        if os.path.exists(spec):
-            from json import load
-            with open("b3denv.spec.json", "r") as file:
-                spec_data = load(file)
-                addon_name = spec_data.get("addon_name", None)
+        addon_name = None
+
+        from json import loads
+        try:
+            spec_data = loads(Path("b3denv.spec.json").read_text())
+            addon_name = spec_data.get("addon_name", None)
+        except FileNotFoundError:
+            addon_name = "Unknown"
         
         kwargs = {}
-        if len(args) > 3 and "=" in args[3]:
-            pairs = [p.split("=") for p in args[3].split(",")]
+        if len(args) > 2 and "=" in args[2]:
+            pairs = [p.split("=") for p in args[2].split(",")]
             kwargs = {k:v for k,v in pairs}
         
         vars = get_vars(addon_name)
@@ -470,7 +514,7 @@ def main():
         if action == "addon":
             addon(vars)
         elif action == "setup":
-            setup(vars)
+            setup(vars, inline=bool(kwargs.get("inline")))
         elif action == "install":
             install(vars)
         elif action == "uninstall":
@@ -482,7 +526,7 @@ def main():
                 addon_path = vars.get("addon_path")
                 show_in_finder(addon_path)
         elif action == "release":
-            release(vars, suffix=kwargs.get("suffix"))
+            release(vars, suffix=kwargs.get("suffix"), inline=bool(kwargs.get("inline")))
         elif action == "inline":
             inline_dependencies(vars)
         elif action == "clean":
