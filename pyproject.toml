@@ -1,6 +1,6 @@
 [project]
 name = "b3denv"
-version = "0.0.21"
+version = "0.0.22"
 description = "Help with blender python"
 readme = {text = """
 # b3denv

@@ -30,3 +30,6 @@
 - Accept 5 as a valid Blender version
 - Give up on Python 2 support, because...
 - Start using uv (omg so much better)
+
+## [0.0.22] - 2026-02-25
+- Accept 5 as a valid Blender version everywhere
