@@ -96,15 +96,21 @@ def get_vars(addon_name):
     elif on_windows():
         version = None
         parent = os.path.dirname(blender)
+
+        print("BLENDER", blender)
+        print("PARENT", parent)
         
         for p in os.listdir(parent):
             if os.path.isdir(os.path.join(parent, p)):
                 name = os.path.basename(p)
                 if re.match(r"[234]{1}\.[0-9]{1,2}", name):
                     version = name
+                    print(">", os.path.join(parent, p))
         
         python_folder = os.path.join(parent, version, "python\\bin")
         python = os.path.join(python_folder, "python.exe")
+
+        print(python_folder)
 
         blenders_appdata = os.path.abspath(os.path.expanduser("~\\AppData\\Roaming\\Blender Foundation\\Blender"))
         addon_path = os.path.join(blenders_appdata, version, "scripts\\addons")
